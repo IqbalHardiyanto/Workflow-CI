@@ -48,6 +48,7 @@ jobs:
       - name: 🔍 Get Run ID
         id: get_run_id
         run: |
+          set -e
           EXPERIMENT_ID=$(mlflow experiments search | grep "Soil_Classification_CI" | awk '{print $1}')
           if [ -z "$EXPERIMENT_ID" ]; then
             echo "::error::Experiment 'Soil_Classification_CI' not found"
@@ -56,7 +57,8 @@ jobs:
           echo "Experiment ID: $EXPERIMENT_ID"
           echo "Available runs:"
           mlflow runs list --experiment-id $EXPERIMENT_ID
-          RUN_ID=$(mlflow runs list --experiment-id $EXPERIMENT_ID | awk 'NR==2 {print $1}' | grep -v '^ID$')
+          # Extract the latest run (skip header, ensure valid run_id)
+          RUN_ID=$(mlflow runs list --experiment-id $EXPERIMENT_ID | awk 'NR==2 && $1 != "ID" {print $1}')
           if [ -z "$RUN_ID" ]; then
             echo "::error::No MLflow runs found in experiment $EXPERIMENT_ID"
             exit 1
