@@ -17,7 +17,6 @@ args = parser.parse_args()
 DATA_PATH = os.path.join(os.path.dirname(__file__), args.data_file)
 df = pd.read_csv(DATA_PATH)
 
-
 feature_columns = ['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall']
 target_column = 'label'
 
@@ -33,7 +32,7 @@ print(f"Target classes: {y.unique()}")
 X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=42, stratify=y)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42, stratify=y_temp)
 
-
+# set name experiment
 mlflow.set_experiment("Soil_Classification_CI")
 
 print("Starting MLflow Tracking...")
