@@ -40,7 +40,6 @@ mlflow.set_experiment("Soil_Classification_CI")
 
 print("Starting MLflow Tracking...")
 
-
 mlflow.sklearn.autolog(disable=True)
 
 
@@ -111,14 +110,11 @@ with mlflow.start_run(run_name=f"Final_{best_model_name}"):
     X_train_full = pd.concat([X_train, X_val])
     y_train_full = pd.concat([y_train, y_val])
     
-    
     best_model.fit(X_train_full, y_train_full)
-    
     
     mlflow.log_param("model_type", best_model_name)
     mlflow.log_param("full_training", True)
     
-    # Test metrics
     y_pred_test = best_model.predict(X_test)
     test_metrics = log_metrics(y_test, y_pred_test, "test")
     

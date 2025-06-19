@@ -44,7 +44,7 @@ jobs:
         shell: bash -l {0}
         run: |
           cd MLProject
-          mlflow run . --env-manager=conda -P data_file=${{ env.DATA_PATH }}
+          mlflow run . --env-manager=conda -P data_file=${{ env.DATA_PATH }} --experiment-name="Soil_Classification_CI"
           cd ..
 
       - name: 🗂️ List contents of mlruns
