@@ -53,11 +53,32 @@ jobs:
           echo "MLflow run artifacts:"
           find MLProject/mlruns -type f
 
-      - name: 🔍 Get latest run_id
+      - name: Get experiment ID by name
+        id: get_experiment_id
+        shell: bash -l {0}
+        run: |
+          EXPERIMENT_NAME="Soil_Classification_CI"
+          EXPERIMENT_ID=$(find MLProject/mlruns -maxdepth 1 -mindepth 1 -type d | while read d; do
+            if [ -f "$d/meta.yaml" ]; then
+              NAME=$(grep '^name:' "$d/meta.yaml" | sed 's/name: //')
+              if [ "$NAME" == "$EXPERIMENT_NAME" ]; then
+                basename "$d"
+                break
+              fi
+            fi
+          done)
+          if [ -z "$EXPERIMENT_ID" ]; then
+            echo "Experiment not found"
+            exit 1
+          fi
+          echo "EXPERIMENT_ID=$EXPERIMENT_ID" >> $GITHUB_ENV
+          echo "Experiment ID: $EXPERIMENT_ID"
+
+      - name: Get latest run_id
         id: get_run_id
         shell: bash -l {0}
         run: |
-          RUN_ID=$(find MLProject/mlruns/0 -type d -path "*/artifacts/model" | sort | tail -n1 | cut -d'/' -f4)
+          RUN_ID=$(find MLProject/mlruns/$EXPERIMENT_ID -type d -path "*/artifacts/model" | sort | tail -n1 | cut -d'/' -f5)
           if [ -z "$RUN_ID" ]; then
             echo "No MLflow model artifact found."
             exit 1
