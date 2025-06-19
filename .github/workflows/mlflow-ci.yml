@@ -41,11 +41,12 @@ jobs:
             -P data_file=${{ env.DATA_PATH }} \
             --experiment-name="Soil_Classification_CI"
 
-      # 3. Extract Run Information
+      # 3. Extract Run Information (FIXED)
       - name: 🔍 Get Run ID
         id: get_run_id
         run: |
-          RUN_ID=$(mlflow runs list --experiment-id 0 | grep -oP '(?<=run_id: ).*' | head -1)
+          EXPERIMENT_ID=$(mlflow experiments list | grep Soil_Classification_CI | awk '{print $1}')
+          RUN_ID=$(mlflow runs list --experiment-id $EXPERIMENT_ID | grep -oP '(?<=run_id: ).*' | head -1)
           if [ -z "$RUN_ID" ]; then
             echo "::error::No MLflow runs found"
             exit 1
