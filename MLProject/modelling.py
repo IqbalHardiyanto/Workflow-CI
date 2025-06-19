@@ -102,7 +102,6 @@ else:
 with mlflow.start_run(run_name=f"Final_{best_model_name}"):
     print(f"\nTraining Final Models: {best_model_name}")
     
-    # Combine train and validation sets
     X_train_full = pd.concat([X_train, X_val])
     y_train_full = pd.concat([y_train, y_val])
     

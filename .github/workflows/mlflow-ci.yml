@@ -71,6 +71,25 @@ jobs:
 
           echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
           echo "Model Run ID: $RUN_ID"
+      
+      - name: 📦 Package Model Artifacts
+        run: |
+          mkdir -p soil-model-${{ env.RUN_ID }}
+          
+          cp -r mlruns/$EXPERIMENT_ID/${{ env.RUN_ID }} soil-model-${{ env.RUN_ID }}/model
+          
+          echo "Run ID: ${{ env.RUN_ID }}" > soil-model-${{ env.RUN_ID }}/metadata.txt
+          echo "Date: $(date)" >> soil-model-${{ env.RUN_ID }}/metadata.txt
+          echo "Commit: ${{ github.sha }}" >> soil-model-${{ env.RUN_ID }}/metadata.txt
+
+      - name: 📤 Upload Model Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: soil-model-${{ env.RUN_ID | slice: 0, 8 }}
+          path: |
+            soil-model-${{ env.RUN_ID }}/
+            runs_list.txt
+          retention-days: 7
 
       - name: 🐳 Build Docker Image
         run: |
