@@ -56,7 +56,7 @@ def log_metrics(y_true, y_pred, prefix="val"):
     return metrics
 
 # Baseline Model - Random Forest
-with mlflow.start_run(run_name="RF_Baseline"):
+with mlflow.start_run(run_name="RF_Baseline", nested=True):
     print("\nTraining Random Forest Baseline")
     rf_baseline = RandomForestClassifier(random_state=42)
     rf_baseline.fit(X_train, y_train)
@@ -71,7 +71,7 @@ with mlflow.start_run(run_name="RF_Baseline"):
     mlflow.sklearn.log_model(rf_baseline, "model")
 
 # Gradient Boosting Model
-with mlflow.start_run(run_name="GBM_Baseline"):
+with mlflow.start_run(run_name="GBM_Baseline", nested=True):
     print("\nTraining Gradient Boosting Machine")
     gbm = GradientBoostingClassifier(random_state=42)
     gbm.fit(X_train, y_train)
@@ -104,7 +104,7 @@ if best_model_name == 'Random Forest':
 else:
     best_model = gbm
 
-with mlflow.start_run(run_name=f"Final_{best_model_name}"):
+with mlflow.start_run(run_name=f"Final_{best_model_name}", nested=True):
     print(f"\nTraining Final Model: {best_model_name}")
     
     # Combine train and validation sets
