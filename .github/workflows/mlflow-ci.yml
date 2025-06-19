@@ -48,7 +48,7 @@ jobs:
       - name: 🔍 Get Run ID
         id: get_run_id
         run: |
-          EXPERIMENT_ID=$(mlflow experiments search --quiet | grep "Soil_Classification_CI" | awk '{print $1}')
+          EXPERIMENT_ID=$(mlflow experiments search | grep "Soil_Classification_CI" | awk '{print $1}')
           if [ -z "$EXPERIMENT_ID" ]; then
             echo "::error::Experiment 'Soil_Classification_CI' not found"
             exit 1
