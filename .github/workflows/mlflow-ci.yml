@@ -1,0 +1,79 @@
+name: CI/CD MLflow - Soil Classification
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  DATA_PATH: "./MLProject/df_soil_preprocessed.csv"
+
+jobs:
+  train-model:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: 🐍 Set up conda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-activate-base: false
+          environment-file: ./Workflow-CI/MLProject/conda.yaml
+          activate-environment: soil-classification-env
+          python-version: "3.10"
+
+      - name: 📦 Install pip dependencies
+        shell: bash -l {0}
+        run: |
+          pip install mlflow scikit-learn pandas
+          echo "Installed dependencies:"
+          pip list
+
+      - name: 🏃 Run MLflow Project
+        shell: bash -l {0}
+        run: |
+          cd MLProject
+          mlflow run . --env-manager=conda -P data_file=${{ env.DATA_PATH }}
+          cd ..
+
+      - name: 🗂️ List contents of mlruns
+        shell: bash -l {0}
+        run: |
+          echo "MLflow run artifacts:"
+          find MLProject/mlruns -type f
+
+      - name: 🔍 Get latest run_id
+        id: get_run_id
+        shell: bash -l {0}
+        run: |
+          RUN_ID=$(find MLProject/mlruns/0 -type d -path "*/artifacts/model" | sort | tail -n1 | cut -d'/' -f4)
+          if [ -z "$RUN_ID" ]; then
+            echo "No MLflow model artifact found."
+            exit 1
+          fi
+          echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
+          echo "Latest run_id: $RUN_ID"
+
+      - name: 💾 Save MLflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlflow-artifacts
+          path: MLProject/mlruns
+          retention-days: 7
+
+      - name: 📝 Update README with run info
+        shell: bash -l {0}
+        run: |
+          echo "MLflow Run ID: $RUN_ID" >> MLProject/README.md
+          echo "Experiment completed at $(date)" >> MLProject/README.md

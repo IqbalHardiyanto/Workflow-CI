@@ -1,0 +1,8 @@
+name: soil-classification
+conda_env: conda.yaml
+
+entry_points:
+  main:
+    parameters:
+      data_file: { type: str, default: "df_soil_preprocessed.csv" }
+    command: "python modelling.py --data_file {data_file}"
