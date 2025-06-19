@@ -57,7 +57,6 @@ with mlflow.start_run(run_name="RF_Baseline"):
     rf_baseline = RandomForestClassifier(random_state=42)
     rf_baseline.fit(X_train, y_train)
     
-    # Manual logging
     mlflow.log_param("model_type", "RandomForest")
     mlflow.log_param("random_state", 42)
     

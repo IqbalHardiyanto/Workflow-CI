@@ -40,14 +40,11 @@ jobs:
 
       - name: 🚀 Run MLflow Project
         run: |
+          set -e
           mlflow run ./MLProject \
             --env-manager=local \
             -P data_file=${{ env.DATA_PATH }} \
             --experiment-name="Soil_Classification_CI"
-          # Debug: List runs immediately
-          EXPERIMENT_ID=$(mlflow experiments search | grep "Soil_Classification_CI" | awk '{print $1}')
-          echo "Experiment ID: $EXPERIMENT_ID"
-          mlflow runs list --experiment-id $EXPERIMENT_ID
 
       - name: 🔍 Get Run ID
         id: get_run_id
@@ -61,7 +58,6 @@ jobs:
           echo "Experiment ID: $EXPERIMENT_ID"
           echo "Available runs:"
           mlflow runs list --experiment-id $EXPERIMENT_ID
-          # Extract the latest run (skip header, ensure valid run_id)
           RUN_ID=$(mlflow runs list --experiment-id $EXPERIMENT_ID | awk 'NR==2 && $1 != "ID" {print $1}')
           if [ -z "$RUN_ID" ]; then
             echo "::error::No MLflow runs found in experiment $EXPERIMENT_ID"
