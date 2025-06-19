@@ -17,7 +17,6 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      # 1. Setup Environment
       - name: 🛒 Checkout Repository
         uses: actions/checkout@v4
 
@@ -30,14 +29,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install "mlflow==2.19.0" scikit-learn pandas docker
-          echo "Installed packages:"
           pip list
 
       - name: 🏗️ Ensure Experiment Exists
         run: |
+          mlflow server --host 0.0.0.0 --port 5000 &
+          sleep 5
           mlflow experiments create --experiment-name "Soil_Classification_CI" || true
+          mlflow experiments list
 
-      # 2. Run MLflow Training
       - name: 🚀 Run MLflow Project
         run: |
           mlflow run ./MLProject \
@@ -45,35 +45,30 @@ jobs:
             -P data_file=${{ env.DATA_PATH }} \
             --experiment-name="Soil_Classification_CI"
 
-      # 3. Extract Run Information (FIXED)
       - name: 🔍 Get Run ID
         id: get_run_id
         run: |
-          EXPERIMENT_ID=$(mlflow experiments search | awk -F' ' '$3=="Soil_Classification_CI"{print $1}')
+          EXPERIMENT_ID=$(mlflow experiments list --quiet | grep "Soil_Classification_CI" | awk '{print $1}')
           if [ -z "$EXPERIMENT_ID" ]; then
-            echo "::error::Experiment not found"
+            echo "::error::Experiment 'Soil_Classification_CI' not found"
             exit 1
           fi
-          RUN_ID=$(mlflow runs list --experiment-id "$EXPERIMENT_ID" | awk 'NR==2 {print $1}')
+          RUN_ID=$(mlflow runs list --experiment-id $EXPERIMENT_ID --order-by "attribute.end_time DESC" | awk 'NR==2 {print $1}')
           if [ -z "$RUN_ID" ]; then
-            echo "::error::No MLflow runs found"
+            echo "::error::No MLflow runs found in experiment $EXPERIMENT_ID"
             exit 1
           fi
           echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
+          echo "Experiment ID: $EXPERIMENT_ID"
           echo "Model Run ID: $RUN_ID"
-          echo "Artifact URI:"
-          mlflow artifacts list --run-id $RUN_ID
 
-      # 4. Build Docker Image
       - name: 🐳 Build Docker Image
         run: |
           mlflow models build-docker \
             -m "runs:/${{ env.RUN_ID }}/model" \
             -n "${{ env.DOCKER_IMAGE_NAME }}" \
-            --enable-mlserver \
-            --install-mlflow
+            --enable-mlserver
 
-      # 5. Docker Hub Integration
       - name: 🔐 Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -84,33 +79,15 @@ jobs:
         run: |
           docker tag ${{ env.DOCKER_IMAGE_NAME }} ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
           docker tag ${{ env.DOCKER_IMAGE_NAME }} ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
-
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
 
-      # 6. Verification and Cleanup
       - name: 🧪 Test Docker Image
         run: |
           docker run -d -p ${{ env.MLFLOW_PORT }}:${{ env.DOCKER_PORT }} --name test-container ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
-          sleep 10  # Wait for server to start
+          sleep 10
           curl -X POST http://localhost:${{ env.MLFLOW_PORT }}/invocations \
             -H 'Content-Type: application/json' \
             -d '{"inputs": [[7.4, 0.7, 0.0, 1.9, 0.076, 11.0, 34.0]]}'
           docker stop test-container
           docker rm test-container
-
-      - name: 📊 Save Run Info
-        run: |
-          echo "MLflow Run ID: ${{ env.RUN_ID }}" >> run_info.md
-          echo "Docker Image: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}" >> run_info.md
-          echo "Git SHA: ${{ github.sha }}" >> run_info.md
-          cat run_info.md
-
-      - name: 📦 Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: deployment-info
-          path: |
-            run_info.md
-            MLProject/mlruns/0/${{ env.RUN_ID }}/artifacts/model
-          retention-days: 7

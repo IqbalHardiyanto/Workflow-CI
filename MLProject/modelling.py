@@ -17,8 +17,6 @@ args = parser.parse_args()
 DATA_PATH = os.path.join(os.path.dirname(__file__), args.data_file)
 df = pd.read_csv(DATA_PATH)
 
-# Load data
-df = pd.read_csv(args.data_file)
 
 feature_columns = ['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall']
 target_column = 'label'
