@@ -65,11 +65,9 @@ with mlflow.start_run(run_name="RF_Baseline"):
     mlflow.log_param("model_type", "RandomForest")
     mlflow.log_param("random_state", 42)
     
-    
     y_pred_rf = rf_baseline.predict(X_val)
     rf_metrics = log_metrics(y_val, y_pred_rf, "val")
     
-    # Log model
     mlflow.sklearn.log_model(rf_baseline, "model")
 
 # Gradient Boosting Model

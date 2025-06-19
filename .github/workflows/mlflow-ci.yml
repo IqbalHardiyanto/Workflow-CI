@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 env:
-  DATA_PATH: "./MLProject/df_soil_preprocessed.csv"
+  DATA_PATH: "./df_soil_preprocessed.csv"
 
 jobs:
   train-model:
