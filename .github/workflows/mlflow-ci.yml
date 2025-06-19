@@ -56,13 +56,19 @@ jobs:
             exit 1
           fi
           echo "Experiment ID: $EXPERIMENT_ID"
-          echo "Available runs:"
-          mlflow runs list --experiment-id $EXPERIMENT_ID
-          RUN_ID=$(mlflow runs list --experiment-id $EXPERIMENT_ID | awk 'NR==2 && $1 != "ID" {print $1}')
+
+          # Simpan output untuk debugging
+          mlflow runs list --experiment-id $EXPERIMENT_ID > runs_list.txt
+          cat runs_list.txt
+
+          # Ekstrak Run ID pertama yang valid
+          RUN_ID=$(grep -Eo '[a-f0-9]{32}' runs_list.txt | head -1)
+
           if [ -z "$RUN_ID" ]; then
-            echo "::error::No MLflow runs found in experiment $EXPERIMENT_ID"
+            echo "::error::No valid MLflow runs found"
             exit 1
           fi
+
           echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
           echo "Model Run ID: $RUN_ID"
 
