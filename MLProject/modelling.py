@@ -43,7 +43,7 @@ print("Starting MLflow Tracking...")
 
 mlflow.sklearn.autolog(disable=True)
 
-# Helper function for manual logging
+
 def log_metrics(y_true, y_pred, prefix="val"):
     metrics = {
         f"{prefix}_accuracy": accuracy_score(y_true, y_pred),
@@ -85,7 +85,6 @@ with mlflow.start_run(run_name="GBM_Baseline"):
     y_pred_gbm = gbm.predict(X_val)
     gbm_metrics = log_metrics(y_val, y_pred_gbm, "val")
     
-    # Log model
     mlflow.sklearn.log_model(gbm, "model")
 
 # Compare models
