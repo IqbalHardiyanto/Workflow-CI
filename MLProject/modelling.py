@@ -80,7 +80,7 @@ with mlflow.start_run(run_name="GBM_Baseline"):
     
     mlflow.sklearn.log_model(gbm, "model")
 
-# Compare model
+# Compare models
 models = {
     'Random Forest': rf_metrics['val_accuracy'],
     'Gradient Boosting': gbm_metrics['val_accuracy']

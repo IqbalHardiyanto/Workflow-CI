@@ -56,12 +56,11 @@ jobs:
             exit 1
           fi
           echo "Experiment ID: $EXPERIMENT_ID"
+          echo "EXPERIMENT_ID=$EXPERIMENT_ID" >> $GITHUB_ENV
 
-          # Simpan output untuk debugging
           mlflow runs list --experiment-id $EXPERIMENT_ID > runs_list.txt
           cat runs_list.txt
 
-          # Ekstrak Run ID pertama yang valid
           RUN_ID=$(grep -Eo '[a-f0-9]{32}' runs_list.txt | head -1)
 
           if [ -z "$RUN_ID" ]; then
@@ -70,15 +69,13 @@ jobs:
           fi
 
           echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
-          echo "RUN_ID_SHORT=${RUN_ID:0:8}" >> $GITHUB_ENV  # Buat versi pendek
+          echo "RUN_ID_SHORT=${RUN_ID:0:8}" >> $GITHUB_ENV
           echo "Model Run ID: $RUN_ID"
 
       - name: 📦 Package Model Artifacts
         run: |
           mkdir -p soil-model-${{ env.RUN_ID }}
-
-          cp -r mlruns/$EXPERIMENT_ID/${{ env.RUN_ID }} soil-model-${{ env.RUN_ID }}/model
-
+          cp -r mlruns/${{ env.EXPERIMENT_ID }}/${{ env.RUN_ID }} soil-model-${{ env.RUN_ID }}/model
           echo "Run ID: ${{ env.RUN_ID }}" > soil-model-${{ env.RUN_ID }}/metadata.txt
           echo "Date: $(date)" >> soil-model-${{ env.RUN_ID }}/metadata.txt
           echo "Commit: ${{ github.sha }}" >> soil-model-${{ env.RUN_ID }}/metadata.txt
