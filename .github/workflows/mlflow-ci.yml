@@ -33,6 +33,10 @@ jobs:
           echo "Installed packages:"
           pip list
 
+      - name: 🏗️ Ensure Experiment Exists
+        run: |
+          mlflow experiments create --experiment-name "Soil_Classification_CI" || true
+
       # 2. Run MLflow Training
       - name: 🚀 Run MLflow Project
         run: |
