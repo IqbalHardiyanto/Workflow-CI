@@ -42,7 +42,6 @@ print("Starting MLflow Tracking...")
 
 mlflow.sklearn.autolog(disable=True)
 
-
 def log_metrics(y_true, y_pred, prefix="val"):
     metrics = {
         f"{prefix}_accuracy": accuracy_score(y_true, y_pred),
