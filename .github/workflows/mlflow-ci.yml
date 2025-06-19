@@ -94,9 +94,12 @@ jobs:
 
       - name: 🧪 Test Docker Image
         run: |
-          docker run -d -p ${{ env.MLFLOW_PORT }}:${{ env.DOCKER_PORT }} --name test-container ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
+          # Start container with random host port
+          CONTAINER_ID=$(docker run -d -p 0:${{ env.DOCKER_PORT }} --name test-container ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest)
+          # Get the host port Docker assigned
+          HOST_PORT=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "'${{ env.DOCKER_PORT }}/tcp'") 0).HostPort}}' $CONTAINER_ID)
           sleep 10
-          curl -X POST http://localhost:${{ env.MLFLOW_PORT }}/invocations \
+          curl -X POST http://localhost:${HOST_PORT}/invocations \
             -H 'Content-Type: application/json' \
             -d '{"inputs": [[7.4, 0.7, 0.0, 1.9, 0.076, 11.0, 34.0]]}'
           docker stop test-container
