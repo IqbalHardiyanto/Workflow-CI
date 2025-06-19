@@ -29,7 +29,7 @@ jobs:
       - name: 📦 Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install mlflow scikit-learn pandas docker
+          pip install "mlflow==2.19.0" scikit-learn pandas docker
           echo "Installed packages:"
           pip list
 
