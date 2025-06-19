@@ -44,6 +44,10 @@ jobs:
             --env-manager=local \
             -P data_file=${{ env.DATA_PATH }} \
             --experiment-name="Soil_Classification_CI"
+          # Debug: List runs immediately
+          EXPERIMENT_ID=$(mlflow experiments search | grep "Soil_Classification_CI" | awk '{print $1}')
+          echo "Experiment ID: $EXPERIMENT_ID"
+          mlflow runs list --experiment-id $EXPERIMENT_ID
 
       - name: 🔍 Get Run ID
         id: get_run_id
