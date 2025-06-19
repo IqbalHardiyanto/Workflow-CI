@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--data_file', type=str, required=True)
 args = parser.parse_args()
 
-# Handle relative paths
+# Handle relative path
 DATA_PATH = os.path.join(os.path.dirname(__file__), args.data_file)
 df = pd.read_csv(DATA_PATH)
 
